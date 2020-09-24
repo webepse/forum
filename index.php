@@ -1,5 +1,46 @@
 <?php
     session_start();
+    require "connexion.php";
+    if(isset($_POST['login'])){
+        if($_POST['login']!="" && $_POST['password']!=""){
+           
+            $login=htmlspecialchars($_POST['login']);
+            $connexion = $bdd->prepare("SELECT id,login,password,role FROM members WHERE login=?");
+            $connexion->execute([$login]);
+            if($info=$connexion->fetch()){
+                if(password_verify($_POST['password'],$info['password'])){
+                    $_SESSION['login']=$info['login'];
+                    $_SESSION['id']=$info['id'];
+                    $_SESSION['role']=$info['role'];
+                    header("LOCATION:index.php");
+                }else{
+                    $error="Votre login ou votre mot de passe n'est pas correct";
+                }
+            }else{
+                $error="Votre login ou votre mot de passe n'est pas correct";
+            }
+
+
+        }else{
+            $error="Veuillez remplir le formulaire";
+        }
+    }
+    if(isset($_SESSION['id'])){
+        if(isset($_POST['message'])){
+            if($_POST['message']!=""){
+                $message=htmlspecialchars($_POST['message']);
+                $insert = $bdd->prepare("INSERT INTO post(id_login,date,message) VALUES(:id,NOW(),:message)");
+                $insert->execute([
+                    ":id"=>$_SESSION['id'],
+                    ":message"=>$message
+                ]);
+                $insert->closeCursor();
+            }else{
+                $postError="veuillez donner un message";
+            }
+        }
+    }
+
 ?>
 
 <!DOCTYPE html>
@@ -10,21 +51,29 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="index.php" method="POST">
-        <div>
-            <label for="login">Login: </label>
-            <input type="text" id="login" name="login">
-        </div>
-        <div>
-            <label for="password">Mot de passe</label>
-            <input type="password" id="password" name="password">
-        </div>
-        <div>
-            <input type="submit" value="Connexion">
-        </div>
-    </form>
-    <div>
-        <a href="inscription.php">Pas encore inscrit?</a>
-    </div>
+    <?php
+        if(isset($_SESSION['login'])){
+    ?>  
+        <h1>Bonjour <?= $_SESSION['login'] ?></h1>
+
+        <h3>Les messages</h3>
+
+
+
+        <form action="index.php" method="POST">
+            <div>
+                <textarea name="message" id="message" cols="30" rows="10"></textarea>
+            </div>
+            <div>
+                <input type="submit" value="envoyer">
+            </div>
+        </form>
+
+        
+    <?php        
+        }else{
+            include("formConnex.php");
+        } 
+    ?>
 </body>
 </html>
