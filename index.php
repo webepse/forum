@@ -46,6 +46,11 @@
 
     }
 
+    if(isset($_GET['deco'])){
+        session_destroy();
+        header("LOCATION:index.php");
+    }
+
 ?>
 
 <!DOCTYPE html>
@@ -53,41 +58,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Document</title>
 </head>
 <body>
     <?php
         if(isset($_SESSION['login'])){
     ?>  
-        <h1>Bonjour <?= $_SESSION['login'] ?></h1>
-
-        <h3>Les messages</h3>
-        <?php
-            $posts = $bdd->query("SELECT members.login AS pseudo, members.id AS id_pseudo, post.message AS message, DATE_FORMAT(post.date, '%d/%m/%Y %Hh%im%Ss') AS mydate FROM post INNER JOIN members ON post.id_login=members.id ORDER BY post.date DESC");
-            while($donPost = $posts->fetch()){
-                echo "<div class='messages'>";
-                    echo "<div class='auteur'><a href='member.php?id=".$donPost['id_pseudo']."'>".$donPost['pseudo']."</a></div>";
-                    echo "<div class='date'>".$donPost['mydate']."</div>";
-                    echo "<div class='message'>".nl2br($donPost['message'])."</div>";
-                echo "</div>";    
-            }
-            $posts->closeCursor();
-        ?>
-
-
-        <form action="index.php" method="POST">
-            <div>
-                <textarea name="message" id="message" cols="30" rows="10"></textarea>
-            </div>
-            <div>
-                <input type="submit" value="envoyer">
-            </div>
+        <div class="container">   
+            <h1>Bonjour <?= $_SESSION['login'] ?></h1>
+            <a id='deco-button' href="index.php?deco=accept">Déconnexion</a>
+    
+            <h3>Les messages</h3>
             <?php
-                if(isset($postError)){
-                    echo "<div class='post-error'>Veuillez remplir le formulaire</div>";
+                $posts = $bdd->query("SELECT members.login AS pseudo, members.id AS id_pseudo, post.message AS message, DATE_FORMAT(post.date, '%d/%m/%Y %Hh%im%Ss') AS mydate FROM post INNER JOIN members ON post.id_login=members.id ORDER BY post.date DESC");
+                while($donPost = $posts->fetch()){
+                    echo "<div class='messages'>";
+                        echo "<div class='auteur'><a href='member.php?id=".$donPost['id_pseudo']."'>".$donPost['pseudo']."</a></div>";
+                        echo "<div class='date'>".$donPost['mydate']."</div>";
+                        echo "<div class='message'>".nl2br($donPost['message'])."</div>";
+                    echo "</div>";    
                 }
+                $posts->closeCursor();
             ?>
-        </form>
+    
+    
+            <form action="index.php" method="POST" >
+                <div>
+                    <textarea name="message" id="message" cols="30" rows="10"></textarea>
+                </div>
+                <div>
+                    <input type="submit" value="envoyer">
+                </div>
+                <?php
+                    if(isset($postError)){
+                        echo "<div class='post-error'>Veuillez remplir le formulaire</div>";
+                    }
+                ?>
+            </form>
+        </div>
 
         
     <?php        
