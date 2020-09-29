@@ -51,6 +51,17 @@
         header("LOCATION:index.php");
     }
 
+    if(isset($_SESSION['role'])){
+        if($_SESSION['role']=="ROLE_ADMIN"){
+            if(isset($_GET['delete'])){
+                $delete = $bdd->prepare("DELETE FROM post WHERE id=?");
+                $delete->execute([$_GET['delete']]);
+                $delete->closeCursor();
+                header("LOCATION:index.php");
+            }
+        }
+    }
+
 ?>
 
 <!DOCTYPE html>
@@ -78,13 +89,21 @@
     
             <h3>Les messages</h3>
             <?php
-                $posts = $bdd->query("SELECT members.login AS pseudo, members.id AS id_pseudo, post.message AS message, DATE_FORMAT(post.date, '%d/%m/%Y %Hh%im%Ss') AS mydate FROM post INNER JOIN members ON post.id_login=members.id ORDER BY post.date DESC");
+                $posts = $bdd->query("SELECT post.id AS id_post, members.login AS pseudo, members.id AS id_pseudo, post.message AS message, DATE_FORMAT(post.date, '%d/%m/%Y %Hh%im%Ss') AS mydate FROM post INNER JOIN members ON post.id_login=members.id ORDER BY post.date DESC");
                 while($donPost = $posts->fetch()){
                     echo "<div class='messages'>";
                         echo "<div class='auteur'><a href='member.php?id=".$donPost['id_pseudo']."'>".$donPost['pseudo']."</a></div>";
                         echo "<div class='date'>".$donPost['mydate']."</div>";
                         echo "<div class='message'>".nl2br($donPost['message'])."</div>";
+                        // affichage différencié avec le role administrateur
+                        if($_SESSION['role']=="ROLE_ADMIN"){
+                            echo "<a href='index.php?delete=".$donPost['id_post']."' class='delete'>X</a>";
+                        }
+                        if($_SESSION['id']==$donPost['id_pseudo']){
+                            echo "<a href='modify.php?id=".$donPost['id_post']."' class='modify'>Modifier</a>";
+                        }
                     echo "</div>";    
+                       
                 }
                 $posts->closeCursor();
             ?>
